@@ -42,8 +42,14 @@ def get_flights():
     return jsonify(flights)
 
 import os
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Flight Tracker is running!"
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Get the port from the environment variable or default to 5000
-    app.run(host="0.0.0.0", port=port, debug=True)  # Bind to 0.0.0.0 so it's accessible from outside
-
+    port = int(os.environ.get("PORT", 10000))  # Get the PORT environment variable or default to 10000
+    app.run(host="0.0.0.0", port=port)  # Bind to 0.0.0.0 to accept requests from anywhere
