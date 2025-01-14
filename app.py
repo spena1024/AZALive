@@ -8,18 +8,24 @@ app = Flask(__name__)
 @app.route("/flights", methods=["GET"])
 def get_flights():
     url = "https://www.gatewayairport.com/flightstatus"
-    
+
     try:
         # Add User-Agent header to mimic a real browser
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
         }
-        # Send request with User-Agent and timeout
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()  # Raise error for non-200 status codes
+        # Send request with User-Agent, longer timeout, and SSL disabled (for testing only)
+        response = requests.get(url, headers=headers, timeout=30, verify=False)
+        response.raise_for_status()  # Raise an error for non-200 status codes
 
     except requests.exceptions.RequestException as e:
+        # Log the error message to help debugging
+        print(f"Error fetching flight data: {e}")
         return f"Error fetching flight data: {e}", 500
+
+    # Log the response status and some of the HTML content for debugging
+    print(f"Response Status Code: {response.status_code}")
+    print(f"Response Text (first 500 chars): {response.text[:500]}")
 
     # Parse the HTML
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -37,7 +43,7 @@ def get_flights():
                 airline_name = "Allegiant Air"
             
             origin = columns[2].text.strip()  # Origin
-            status = columns[3].text.strip()  # Status (time, delayed, etc.)
+            status = columns[3].text.strip()  # Status (e.g., arrived, delayed, etc.)
             time = columns[4].text.strip()  # Scheduled/actual time
 
             flight_info = {
