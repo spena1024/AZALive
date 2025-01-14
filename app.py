@@ -10,34 +10,34 @@ def get_flights():
     url = "https://www.gatewayairport.com/flightstatus"
     
     try:
-        # Send request with timeout and raise error for bad responses
-        response = requests.get(url, timeout=10)
+        # Add User-Agent header to mimic a real browser
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        }
+        # Send request with User-Agent and timeout
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()  # Raise error for non-200 status codes
 
     except requests.exceptions.RequestException as e:
-        # Return an error message with status 500 if request fails
         return f"Error fetching flight data: {e}", 500
 
-    # Parse the HTML response
+    # Parse the HTML
     soup = BeautifulSoup(response.text, 'html.parser')
-    
+
     flights = []
     for row in soup.select("table tbody tr"):
         columns = row.find_all('td')
-        print(f"Row content: {row}")  # Debug: Print the full row to see its HTML
-        print(f"Number of columns: {len(columns)}")  # Debug: Print the number of columns
-
         if len(columns) >= 5:  # Ensure there are at least 5 columns
             flight_number = columns[1].text.strip()  # Flight number
             airline_name = columns[0].text.strip()  # Airline name
-            
+
             # Check for Allegiant Air logo
             img_tag = columns[0].find('img')
             if img_tag and "Images/AirlineLogos/G4.png" in img_tag.get('src', ''):
                 airline_name = "Allegiant Air"
             
             origin = columns[2].text.strip()  # Origin
-            status = columns[3].text.strip()  # Status
+            status = columns[3].text.strip()  # Status (time, delayed, etc.)
             time = columns[4].text.strip()  # Scheduled/actual time
 
             flight_info = {
